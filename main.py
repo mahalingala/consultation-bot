@@ -3,8 +3,7 @@ import os
 import time
 from playwright.sync_api import sync_playwright
 
-# 🔥 Install browser ONCE
-subprocess.run(["playwright", "install", "chromium"])
+
 
 # 🔐 Get credentials from Railway
 USERNAME = os.getenv("251280070037")
