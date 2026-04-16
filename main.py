@@ -1,12 +1,18 @@
-from playwright.sync_api import sync_playwright
+import subprocess
+import os
 import time
+from playwright.sync_api import sync_playwright
 
-USERNAME = "251280070037"
-PASSWORD = "28/08/2003"
+# 🔥 Install browser ONCE
+subprocess.run(["playwright", "install", "chromium"])
+
+# 🔐 Get credentials from Railway
+USERNAME = os.getenv("251280070037")
+PASSWORD = os.getenv("28/08/2003")
 
 def run():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
 
         context = browser.new_context()
         page = context.new_page()
@@ -29,14 +35,13 @@ def run():
 
         print("✅ Logged in")
 
-        # STEP 4: Click MORE (important)
+        # STEP 4: Click MORE
         page.click("text=MORE")
-
         page.wait_for_timeout(3000)
 
         print("📊 Reached consultation table")
 
-        # ⚡ FAST LOOP (NO PAGE RELOAD)
+        # ⚡ FAST LOOP
         while True:
             try:
                 checkboxes = page.locator("input[type='checkbox']")
@@ -45,13 +50,11 @@ def run():
                 for i in range(count):
                     cb = checkboxes.nth(i)
 
-                    # ⚡ ONLY CLICK EMPTY BOX (enabled)
                     if cb.is_enabled():
                         print("🔥 SLOT FOUND! BOOKING NOW")
 
                         cb.click()
 
-                        # optional confirm (if button exists)
                         try:
                             page.click("text=Submit")
                         except:
@@ -62,7 +65,6 @@ def run():
                         browser.close()
                         return
 
-                # ⚡ VERY FAST CHECK
                 time.sleep(0.5)
 
             except Exception as e:
