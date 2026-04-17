@@ -1,17 +1,12 @@
-
-
 import os
 import time
 from playwright.sync_api import sync_playwright
 
-# 🔐 Get credentials from Railway Variables
+# 🔐 Get credentials from Railway variables
 USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 
 def run():
-    print("USERNAME:", USERNAME)
-    print("PASSWORD:", PASSWORD)
-
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
 
@@ -21,15 +16,15 @@ def run():
         # STEP 1: Open login page
         page.goto("https://portal.manipal.edu/statistics/I11")
 
-        # STEP 2: Select Student role
+        # STEP 2: Select Student
         page.select_option("select", label="Student")
         page.click("text=CONTINUE")
 
         page.wait_for_timeout(2000)
 
         # STEP 3: Login
-        page.locator("input[type='text']").fill(str(USERNAME))
-        page.locator("input[type='password']").fill(str(PASSWORD))
+        page.fill("input[type='text']", USERNAME)
+        page.fill("input[type='password']", PASSWORD)
         page.click("text=LOGIN")
 
         page.wait_for_load_state("networkidle")
@@ -42,9 +37,11 @@ def run():
 
         print("📊 Reached consultation table")
 
-        # ⚡ FAST LOOP
+        # 🔁 Continuous checking loop
         while True:
             try:
+                print("🔍 Checking slots...")
+
                 checkboxes = page.locator("input[type='checkbox']")
                 count = checkboxes.count()
 
@@ -73,5 +70,3 @@ def run():
                 time.sleep(1)
 
 run()
-
-
