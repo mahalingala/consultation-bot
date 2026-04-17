@@ -1,15 +1,17 @@
-import subprocess
+
+
 import os
 import time
 from playwright.sync_api import sync_playwright
 
-
-
-# 🔐 Get credentials from Railway
-USERNAME = os.getenv("251280070037")
-PASSWORD = os.getenv("28/08/2003")
+# 🔐 Get credentials from Railway Variables
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
 
 def run():
+    print("USERNAME:", USERNAME)
+    print("PASSWORD:", PASSWORD)
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
 
@@ -19,15 +21,15 @@ def run():
         # STEP 1: Open login page
         page.goto("https://portal.manipal.edu/statistics/I11")
 
-        # STEP 2: Select Student
+        # STEP 2: Select Student role
         page.select_option("select", label="Student")
         page.click("text=CONTINUE")
 
         page.wait_for_timeout(2000)
 
         # STEP 3: Login
-        page.fill("input[type='text']", USERNAME)
-        page.fill("input[type='password']", PASSWORD)
+        page.locator("input[type='text']").fill(str(USERNAME))
+        page.locator("input[type='password']").fill(str(PASSWORD))
         page.click("text=LOGIN")
 
         page.wait_for_load_state("networkidle")
@@ -71,3 +73,5 @@ def run():
                 time.sleep(1)
 
 run()
+
+
