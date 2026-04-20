@@ -11,33 +11,42 @@ def run():
         context = browser.new_context()
         page = context.new_page()
 
-        # Login
         print("🌐 Opening login page...")
-        page.goto("https://portal.manipal.edu/statistics/l11")
-        page.wait_for_load_state("networkidle")
+        page.goto("https://portal.manipal.edu/statistics/l11", timeout=60000)
+        page.wait_for_load_state("networkidle", timeout=60000)
+        page.wait_for_timeout(3000)  # extra wait for JS to render
 
+        # take screenshot to see what the page looks like
+        page.screenshot(path="page1.png")
+        print(f"📸 Page loaded. URL: {page.url}")
+        print(f"📄 Page title: {page.title()}")
+
+        # wait specifically for the select element
+        page.wait_for_selector("select", timeout=30000)
         page.select_option("select", label="Student")
         page.wait_for_timeout(500)
 
         page.click("text=CONTINUE")
-        page.wait_for_load_state("networkidle")
-        page.wait_for_timeout(1500)
+        page.wait_for_load_state("networkidle", timeout=60000)
+        page.wait_for_timeout(2000)
 
+        page.screenshot(path="page2.png")
         print("🔑 Logging in...")
+
         page.fill("input[type='text']", USERNAME)
         page.fill("input[type='password']", PASSWORD)
         page.click("text=LOGIN")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("networkidle", timeout=60000)
         page.wait_for_timeout(2000)
 
         if "l8" not in page.url:
+            page.screenshot(path="login_failed.png")
             print(f"❌ Login failed! URL: {page.url}")
             browser.close()
             return
 
         print("✅ Logged in!")
 
-        # Go to consultation list
         page.goto("https://portal.manipal.edu/statistics/l7")
         page.wait_for_load_state("networkidle")
 
@@ -55,7 +64,7 @@ def run():
                     cb = checkboxes.nth(i)
                     if cb.is_enabled() and not cb.is_checked():
                         print(f"🔥 OPEN SLOT FOUND! Clicking slot #{i}...")
-                        cb.click()  # just click, no submit
+                        cb.click()
                         page.wait_for_timeout(500)
                         page.screenshot(path="booked.png")
                         print("✅ DONE!")
