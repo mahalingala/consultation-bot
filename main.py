@@ -2,7 +2,7 @@ import os
 import time
 from playwright.sync_api import sync_playwright
 
-USERNAME = os.getenv("USERNAME")
+USERNAME = os.getenv("USERNAME_VAL")
 PASSWORD = os.getenv("PASSWORD")
 
 def run():
@@ -11,55 +11,61 @@ def run():
         context = browser.new_context()
         page = context.new_page()
 
-        # STEP 1: Open login page
-        page.goto("https://portal.manipal.edu/statistics/111")
+        # Login
+        print("🌐 Opening login page...")
+        page.goto("https://portal.manipal.edu/statistics/l11")
+        page.wait_for_load_state("networkidle")
 
-        # STEP 2: Select Student
         page.select_option("select", label="Student")
-        page.click("text=CONTINUE")
+        page.wait_for_timeout(500)
 
-        # STEP 3: Login
+        page.click("text=CONTINUE")
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(1500)
+
+        print("🔑 Logging in...")
         page.fill("input[type='text']", USERNAME)
         page.fill("input[type='password']", PASSWORD)
         page.click("text=LOGIN")
-
         page.wait_for_load_state("networkidle")
-        print("✅ Logged in")
+        page.wait_for_timeout(2000)
 
-        # STEP 4: Click MORE
-        page.click("text=MORE")
-        page.wait_for_selector("table")  # wait until consultation table appears
-        print("📊 Reached consultation table")
+        if "l8" not in page.url:
+            print(f"❌ Login failed! URL: {page.url}")
+            browser.close()
+            return
 
-        # 🔁 Continuous checking loop
+        print("✅ Logged in!")
+
+        # Go to consultation list
+        page.goto("https://portal.manipal.edu/statistics/l7")
+        page.wait_for_load_state("networkidle")
+
+        print("🔥 Scanning for open slots...")
+
         while True:
             try:
-                print("🔍 Checking slots...")
+                page.reload()
+                page.wait_for_load_state("networkidle")
 
-                checkboxes = page.locator("table input[type='checkbox']")
+                checkboxes = page.locator("input[type='checkbox']")
                 count = checkboxes.count()
 
                 for i in range(count):
                     cb = checkboxes.nth(i)
-
-                    if cb.is_enabled():
-                        print("🔥 SLOT FOUND! BOOKING NOW")
-                        cb.click()
-
-                        # Try clicking submit button
-                        try:
-                            page.get_by_role("button", name="Submit").click()
-                        except:
-                            page.click("text=Submit")
-
-                        print("✅ BOOKED SUCCESSFULLY")
+                    if cb.is_enabled() and not cb.is_checked():
+                        print(f"🔥 OPEN SLOT FOUND! Clicking slot #{i}...")
+                        cb.click()  # just click, no submit
+                        page.wait_for_timeout(500)
+                        page.screenshot(path="booked.png")
+                        print("✅ DONE!")
                         browser.close()
                         return
 
-                time.sleep(1)
+                print("⏳ No open slots, retrying...")
 
             except Exception as e:
-                print("⚠️ Error:", e)
-                time.sleep(2)
+                print(f"⚠️ Error: {e}")
+                time.sleep(0.5)
 
 run()
